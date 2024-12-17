@@ -58,6 +58,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'cs415.urls'
+APPEND_SLASH = True
 
 TEMPLATES = [
     {
