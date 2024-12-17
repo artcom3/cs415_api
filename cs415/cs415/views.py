@@ -28,9 +28,17 @@ class WebUserAPIView(APIView):
 
 class SingleWebUserAPIView(APIView):
     def get(self, request, web_user_id):
-        webuser = Webuser.objects.get(web_user_id=web_user_id)
-        serializer = WebuserSerializer(webuser)
-        return Response(serializer.data)
+        user_data = {}
+        user = Webuser.objects.get(web_user_id=web_user_id)
+        user_serial = WebuserSerializer(user)
+        user_data.update({"user": user_serial.data})
+        addresses = UseraddressSerializer(Useraddress.objects.filter(web_user=user), many=True)
+        user_data.update({"addresses": addresses.data})
+        info = UserinfoSerializer(Userinfo.objects.filter(web_user=user), many=True)
+        user_data.update({"info": info.data})
+        phone = UserphoneSerializer(Userphone.objects.filter(web_user=user).select_related(), many=True)
+        user_data.update({"phones": phone.data})
+        return Response(user_data)
 
     @swagger_auto_schema(operation_description="Update WebUser", request_body=WebuserSerializer)
     def patch(self,request,web_user_id):
