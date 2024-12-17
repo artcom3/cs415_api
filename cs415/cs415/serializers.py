@@ -6,6 +6,11 @@ class WebuserSerializer(serializers.ModelSerializer):
         model = Webuser
         fields = ['web_user_id', 'first_name', 'last_name', 'email', 'created_date', 'is_active', 'last_login']
 
+class WebuserSerializerPost(serializers.ModelSerializer):
+    class Meta:
+        model = Webuser
+        fields = '__all__'
+
 class AddresstypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Addresstype

@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
 from cs415.models import Pagedata, Phonetype, Useraddress, Userinfo, Userphone, Webuser, Addresstype
-from cs415.serializers import PagedataSerializer, PhonetypeSerializer, UseraddressSerializer, UserinfoSerializer, UserphoneSerializer, WebuserSerializer, AddresstypeSerializer
+from cs415.serializers import WebuserSerializerPost, PagedataSerializer, PhonetypeSerializer, UseraddressSerializer, UserinfoSerializer, UserphoneSerializer, WebuserSerializer, AddresstypeSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -14,11 +14,11 @@ class WebUserAPIView(APIView):
         serializer = WebuserSerializer(webusers, many=True)
         return Response(serializer.data)
     
-    @swagger_auto_schema(operation_description="Add New User", request_body=WebuserSerializer)
+    @swagger_auto_schema(operation_description="Add New User", request_body=WebuserSerializerPost)
     def post(self, request, *args, **kwargs):
         request.data['created_date'] = str(datetime.now())
         request.data['is_active'] = 1
-        serializer = WebuserSerializer(data=request.data)
+        serializer = WebuserSerializerPost(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -238,3 +238,45 @@ class SingleUserphoneAPIView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+class Login(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        if not email or not password:
+            return Response({'success': False,
+                             'error': 'Email and Password must have a value'},
+                             status = status.HTTP_400_BAD_REQUEST)
+
+        check_user = Webuser.objects.filter(email=email).exists()
+        if check_user == False:
+            return Response({'success': False,
+                             'error': 'User with this email does not exist'},
+                             status=status.HTTP_404_NOT_FOUND)
+
+        check_pass = Webuser.objects.filter(email = email, password=password).exists()
+        if check_pass == False:
+            return Response({'success': False,
+                             'error': 'Incorrect password for user'},
+                             status=status.HTTP_401_UNAUTHORIZED)
+        user = Webuser.objects.get(email=email, password=password)
+
+        # add last login to User table
+        serializer = WebuserSerializer(user, data={'last_login': str(datetime.now())}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+
+        if user is not None:
+            jwt_token = "jwt_token_here"
+            data = {
+                'token': jwt_token
+            }
+            return Response({'success': True,
+                             'user_id': user.web_user_id,
+                             'token': jwt_token},
+                             status=status.HTTP_200_OK)
+        else:
+            return Response({'success': False,
+                             'error': 'Invalid Login Credentials'},
+                             status=status.HTTP_400_BAD_REQUEST)

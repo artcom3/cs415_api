@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, re_path
 from cs415.views import UserphoneAPIView, WebUserAPIView, AddresstypeAPIView, PagedataAPIView, PhonetypeAPIView, UseraddressAPIView, UserinfoAPIView
 from cs415.views import SingleWebUserAPIView, SingleAddresstypeAPIView, SinglePagedataAPIView, SinglePhonetypeAPIView, SingleUseraddressAPIView, SingleUserinfoAPIView, SingleUserphoneAPIView
+from cs415.views import Login
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
@@ -48,4 +49,5 @@ urlpatterns = [
     path('user-infos/user-info/<int:user_info_id>', SingleUserinfoAPIView.as_view()),
     path('pages', PagedataAPIView.as_view()),
     path('pages/page/<int:page_id>', SinglePagedataAPIView.as_view()),
+    path('login', Login.as_view())
 ]
